@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CV Analyzer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>CV Analyzer</h1>
+
+    <label>Upload CV (PDF):</label>
+    <input type="file" id="cvInput" accept=".pdf">
+
+    <label>Job Description:</label>
+    <textarea id="jobDescription" rows="8"></textarea>
+
+    <button id="analyzeBtn">Analyze</button>
+
+    <div id="results"></div>
+  </div>
+
+  <script>
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const cvInput = document.getElementById("cvInput");
+    const jobDescription = document.getElementById("jobDescription");
+    const resultsDiv = document.getElementById("results");
+
+    analyzeBtn.addEventListener("click", async () => {
+      if (!cvInput.files[0] || !jobDescription.value) {
+        alert("Please upload a CV and enter a job description.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("cv", cvInput.files[0]);
+      formData.append("jobDescription", jobDescription.value);
+
+      try {
+        const res = await fetch("http://localhost:5000/analyze", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+
+        resultsDiv.innerHTML = `
+          <h2>Results:</h2>
+          <p>Match Percentage: ${data.matchPercent}%</p>
+          <h3>Matched Keywords:</h3>
+          <ul>${data.matchedKeywords.map(word => `<li>${word}</li>`).join('')}</ul>
+          <h3>Missing Keywords:</h3>
+          <ul>${data.missingKeywords.map(word => `<li>${word}</li>`).join('')}</ul>
+        `;
+      } catch (err) {
+        console.error(err);
+        alert("Error analyzing CV.");
+      }
+    });
+  </script>
+</body>
+</html>
